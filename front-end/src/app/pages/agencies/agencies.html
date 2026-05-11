@@ -1,0 +1,80 @@
+<div class="mx-auto max-w-6xl px-4 py-8">
+  <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <h1 class="text-2xl font-semibold tracking-tight text-white">Agences</h1>
+      <p class="mt-1 text-sm text-slate-400">Gestion des agences et acces aux vehicules</p>
+    </div>
+    <div class="flex flex-wrap gap-2" *ngIf="auth.hasRole('ROLE_EMPLOYE') || auth.hasRole('ROLE_ADMIN')">
+      <button type="button" (click)="showForm = !showForm"
+        class="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-indigo-400">
+        Nouvelle agence
+      </button>
+    </div>
+  </div>
+
+  <form [formGroup]="searchForm" (ngSubmit)="search()" class="mb-6 flex gap-2">
+    <input formControlName="keyword" placeholder="Rechercher par nom..."
+      class="flex-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+    <button type="submit" class="rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-slate-100 hover:bg-slate-700">Rechercher</button>
+    <button type="button" (click)="searchForm.patchValue({ keyword: '' }); load()"
+      class="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 hover:bg-slate-800">Reset</button>
+  </form>
+
+  <div *ngIf="error" class="mb-4 rounded-lg border border-red-900/50 bg-red-950/40 px-4 py-3 text-sm text-red-200">{{ error }}</div>
+
+  <div *ngIf="showForm && (auth.hasRole('ROLE_EMPLOYE') || auth.hasRole('ROLE_ADMIN'))"
+    class="mb-8 rounded-xl border border-slate-800 bg-slate-900/50 p-6 shadow-xl">
+    <h2 class="mb-4 text-lg font-medium text-white">Creer une agence</h2>
+    <form [formGroup]="form" (ngSubmit)="save()" class="grid gap-4 sm:grid-cols-2">
+      <div>
+        <label class="mb-1 block text-xs font-medium text-slate-400">Nom</label>
+        <input formControlName="nom" class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm" />
+      </div>
+      <div>
+        <label class="mb-1 block text-xs font-medium text-slate-400">Telephone</label>
+        <input formControlName="telephone" class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm" />
+      </div>
+      <div class="sm:col-span-2">
+        <label class="mb-1 block text-xs font-medium text-slate-400">Adresse</label>
+        <input formControlName="adresse" class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm" />
+      </div>
+      <div>
+        <label class="mb-1 block text-xs font-medium text-slate-400">Ville</label>
+        <input formControlName="ville" class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm" />
+      </div>
+      <div class="flex items-end">
+        <button type="submit" [disabled]="form.invalid"
+          class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500 disabled:opacity-40">Enregistrer</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="overflow-hidden rounded-xl border border-slate-800 bg-slate-900/40 shadow-xl">
+    <table class="min-w-full divide-y divide-slate-800 text-sm">
+      <thead class="bg-slate-900/80">
+        <tr>
+          <th class="px-4 py-3 text-left font-medium text-slate-400">#</th>
+          <th class="px-4 py-3 text-left font-medium text-slate-400">Nom</th>
+          <th class="px-4 py-3 text-left font-medium text-slate-400">Ville</th>
+          <th class="px-4 py-3 text-left font-medium text-slate-400">Tel</th>
+          <th class="px-4 py-3 text-right font-medium text-slate-400">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-800">
+        <tr *ngFor="let a of agencies" class="hover:bg-slate-800/40">
+          <td class="px-4 py-3 text-slate-500">{{ a.id }}</td>
+          <td class="px-4 py-3 font-medium text-white">{{ a.nom }}</td>
+          <td class="px-4 py-3 text-slate-300">{{ a.ville }}</td>
+          <td class="px-4 py-3 text-slate-300">{{ a.telephone }}</td>
+          <td class="px-4 py-3 text-right">
+            <button type="button" (click)="goVehicles(a.id)"
+              class="mr-2 rounded-md bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-100 hover:bg-slate-700">Vehicules</button>
+            <button *ngIf="auth.hasRole('ROLE_ADMIN')" type="button" (click)="remove(a.id)"
+              class="rounded-md bg-red-600/80 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-600">Supprimer</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div *ngIf="agencies.length === 0" class="px-4 py-8 text-center text-sm text-slate-500">Aucune agence</div>
+  </div>
+</div>

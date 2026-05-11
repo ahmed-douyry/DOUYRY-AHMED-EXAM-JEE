@@ -1,0 +1,55 @@
+<div class="mx-auto max-w-4xl px-4 py-8">
+  <button type="button" (click)="back()" class="text-sm text-indigo-400 hover:text-indigo-300">&larr; Retour</button>
+  <h1 class="mt-3 text-2xl font-semibold text-white">Historique des locations — vehicule #{{ vehicleId }}</h1>
+  <p class="mt-1 text-sm text-slate-400">Nouvelle location (vehicule doit etre DISPONIBLE). Cloture reservee employe / admin.</p>
+
+  <div *ngIf="error" class="mt-4 rounded-lg border border-red-900/50 bg-red-950/40 px-4 py-3 text-sm text-red-200">{{ error }}</div>
+
+  <div *ngIf="auth.hasRole('ROLE_CLIENT') || auth.hasRole('ROLE_EMPLOYE') || auth.hasRole('ROLE_ADMIN')"
+    class="mt-8 rounded-xl border border-slate-800 bg-slate-900/50 p-5">
+    <h2 class="mb-3 text-lg font-medium text-white">Nouvelle location</h2>
+    <form [formGroup]="form" (ngSubmit)="create()" class="grid gap-3 sm:grid-cols-2">
+      <div>
+        <label class="mb-1 block text-xs text-slate-400">Date debut</label>
+        <input type="date" formControlName="dateDebut" class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm" />
+      </div>
+      <div>
+        <label class="mb-1 block text-xs text-slate-400">Date fin</label>
+        <input type="date" formControlName="dateFin" class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm" />
+      </div>
+      <div class="sm:col-span-2">
+        <label class="mb-1 block text-xs text-slate-400">Locataire</label>
+        <input formControlName="locataire" class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm" />
+      </div>
+      <button type="submit" [disabled]="form.invalid" class="sm:col-span-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-40">Reserver</button>
+    </form>
+  </div>
+
+  <div class="mt-10 overflow-hidden rounded-xl border border-slate-800 bg-slate-900/40">
+    <table class="min-w-full divide-y divide-slate-800 text-sm">
+      <thead class="bg-slate-900/80">
+        <tr>
+          <th class="px-4 py-3 text-left text-slate-400">#</th>
+          <th class="px-4 py-3 text-left text-slate-400">Debut</th>
+          <th class="px-4 py-3 text-left text-slate-400">Fin</th>
+          <th class="px-4 py-3 text-left text-slate-400">Montant</th>
+          <th class="px-4 py-3 text-left text-slate-400">Locataire</th>
+          <th class="px-4 py-3 text-right text-slate-400" *ngIf="auth.hasRole('ROLE_EMPLOYE') || auth.hasRole('ROLE_ADMIN')">Cloturer</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-800">
+        <tr *ngFor="let r of rentals">
+          <td class="px-4 py-3 text-slate-500">{{ r.id }}</td>
+          <td class="px-4 py-3 text-slate-200">{{ r.dateDebut }}</td>
+          <td class="px-4 py-3 text-slate-200">{{ r.dateFin }}</td>
+          <td class="px-4 py-3 text-emerald-300">{{ r.montantTotal }}</td>
+          <td class="px-4 py-3 text-slate-300">{{ r.locataire }}</td>
+          <td class="px-4 py-3 text-right" *ngIf="auth.hasRole('ROLE_EMPLOYE') || auth.hasRole('ROLE_ADMIN')">
+            <button type="button" (click)="close(r.id)" class="rounded-md bg-amber-700/80 px-2 py-1 text-xs text-white hover:bg-amber-600">Retour vehicule</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div *ngIf="rentals.length === 0" class="px-4 py-8 text-center text-slate-500">Aucune location</div>
+  </div>
+</div>
