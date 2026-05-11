@@ -4,12 +4,14 @@ import com.example.douyry_ahmed.dtos.AgencyDto;
 import com.example.douyry_ahmed.dtos.RentalDto;
 import com.example.douyry_ahmed.dtos.VehicleDto;
 import com.example.douyry_ahmed.entities.AppUser;
+import com.example.douyry_ahmed.enums.UserRole;
 import com.example.douyry_ahmed.repositories.AppUserRepository;
 import com.example.douyry_ahmed.services.LocationService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -22,19 +24,34 @@ public class BackendApplication {
     }
 
     @Bean
-    CommandLineRunner seed(AppUserRepository appUserRepository , LocationService locationService) {
+    CommandLineRunner seed(LocationService locationService,
+                           AppUserRepository appUserRepository,
+                           PasswordEncoder passwordEncoder) {
         return args -> {
             if (appUserRepository.count() == 0) {
-                appUserRepository.save(AppUser.builder()
-                        .username("client")
-                        .password("1234")
-                        .build());
-
-                appUserRepository.save(AppUser.builder()
-                        .username("admin")
-                        .password("1234")
-                        .build());
+                appUserRepository.save(AppUser.builder().username("client").password(passwordEncoder.encode("1234")).role(UserRole.ROLE_CLIENT).build());
+                appUserRepository.save(AppUser.builder().username("employe").password(passwordEncoder.encode("1234")).role(UserRole.ROLE_EMPLOYE).build());
+                appUserRepository.save(AppUser.builder().username("admin").password(passwordEncoder.encode("1234")).role(UserRole.ROLE_ADMIN).build());
             }
+
+            for (AppUser user : appUserRepository.findAll()) {
+                if (!isSeedDevAccount(user.getUsername())) {
+                    continue;
+                }
+                boolean changed = false;
+                if (user.getRole() == null) {
+                    user.setRole(roleForKnownUsername(user.getUsername()));
+                    changed = true;
+                }
+                if (!looksLikeBcrypt(user.getPassword())) {
+                    user.setPassword(passwordEncoder.encode("1234"));
+                    changed = true;
+                }
+                if (changed) {
+                    appUserRepository.save(user);
+                }
+            }
+
             if (locationService.listAgencies().isEmpty()) {
                 AgencyDto a1 = new AgencyDto();
                 a1.setNom("Agence Casa Centre");
@@ -72,6 +89,38 @@ public class BackendApplication {
                 RentalDto savedRent = locationService.createRental(savedMoto.getId(), rent);
                 locationService.closeRental(savedRent.getId());
             }
+        };
+    }
+
+    private static boolean isSeedDevAccount(String username) {
+        if (username == null) {
+            return false;
+        }
+        return switch (username.toLowerCase()) {
+            case "admin", "employe", "client" -> true;
+            default -> false;
+        };
+    }
+
+    private static boolean looksLikeBcrypt(String encodedPassword) {
+        if (encodedPassword == null || encodedPassword.length() < 60) {
+            return false;
+        }
+        return encodedPassword.startsWith("$2a$")
+                || encodedPassword.startsWith("$2b$")
+                || encodedPassword.startsWith("$2y$");
+    }
+
+    /** Comptes créés à la main ou migrés sans colonne {@code role}. */
+    private static UserRole roleForKnownUsername(String username) {
+        if (username == null) {
+            return UserRole.ROLE_CLIENT;
+        }
+        return switch (username.toLowerCase()) {
+            case "admin" -> UserRole.ROLE_ADMIN;
+            case "employe" -> UserRole.ROLE_EMPLOYE;
+            case "client" -> UserRole.ROLE_CLIENT;
+            default -> UserRole.ROLE_CLIENT;
         };
     }
 }

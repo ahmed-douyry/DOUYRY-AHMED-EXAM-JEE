@@ -5,12 +5,12 @@
     <form [formGroup]="loginForm" (ngSubmit)="handleLogin()" class="mt-8 space-y-4">
       <div>
         <label for="username" class="mb-1 block text-xs font-medium text-slate-400">Utilisateur</label>
-        <input id="username" type="text" formControlName="username" placeholder="client / employe / admin"
+        <input id="username" type="text" formControlName="username" 
           class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-600 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
       </div>
       <div>
         <label for="password" class="mb-1 block text-xs font-medium text-slate-400">Mot de passe</label>
-        <input id="password" type="password" formControlName="password" placeholder="1234"
+        <input id="password" type="password" formControlName="password" 
           class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-600 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
       </div>
       <button type="submit" [disabled]="loginForm.invalid"

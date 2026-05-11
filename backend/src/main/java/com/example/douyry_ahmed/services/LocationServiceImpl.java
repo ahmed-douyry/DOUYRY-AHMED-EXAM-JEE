@@ -4,6 +4,9 @@ import com.example.douyry_ahmed.dtos.AgencyDto;
 import com.example.douyry_ahmed.dtos.RentalDto;
 import com.example.douyry_ahmed.dtos.VehicleDto;
 import com.example.douyry_ahmed.entities.*;
+import com.example.douyry_ahmed.exceptions.AgencyNotFoundException;
+import com.example.douyry_ahmed.exceptions.RentalNotFoundException;
+import com.example.douyry_ahmed.exceptions.VehicleNotFoundException;
 import com.example.douyry_ahmed.enums.FuelType;
 import com.example.douyry_ahmed.enums.GearboxType;
 import com.example.douyry_ahmed.enums.MotoType;
@@ -51,6 +54,9 @@ public class LocationServiceImpl implements LocationService {
 
     @Override
     public void deleteAgency(Long id) {
+        if (!agencyRepository.existsById(id)) {
+            throw new AgencyNotFoundException(id);
+        }
         agencyRepository.deleteById(id);
     }
 
@@ -67,7 +73,7 @@ public class LocationServiceImpl implements LocationService {
 
     @Override
     public VehicleDto saveCar(Long agencyId, VehicleDto dto) {
-        Agency agency = agencyRepository.findById(agencyId).orElseThrow();
+        Agency agency = agencyRepository.findById(agencyId).orElseThrow(() -> new AgencyNotFoundException(agencyId));
         Car car = Car.builder()
                 .marque(dto.getMarque())
                 .modele(dto.getModele())
@@ -85,7 +91,7 @@ public class LocationServiceImpl implements LocationService {
 
     @Override
     public VehicleDto saveMoto(Long agencyId, VehicleDto dto) {
-        Agency agency = agencyRepository.findById(agencyId).orElseThrow();
+        Agency agency = agencyRepository.findById(agencyId).orElseThrow(() -> new AgencyNotFoundException(agencyId));
         Moto moto = Moto.builder()
                 .marque(dto.getMarque())
                 .modele(dto.getModele())
@@ -103,7 +109,7 @@ public class LocationServiceImpl implements LocationService {
 
     @Override
     public VehicleDto updateVehicleStatus(Long vehicleId, VehicleStatus statut) {
-        Vehicle v = vehicleRepository.findById(vehicleId).orElseThrow();
+        Vehicle v = vehicleRepository.findById(vehicleId).orElseThrow(() -> new VehicleNotFoundException(vehicleId));
         v.setStatut(statut);
         return mapper.fromVehicle(vehicleRepository.save(v));
     }
@@ -116,7 +122,7 @@ public class LocationServiceImpl implements LocationService {
 
     @Override
     public RentalDto createRental(Long vehicleId, RentalDto dto) {
-        Vehicle v = vehicleRepository.findById(vehicleId).orElseThrow();
+        Vehicle v = vehicleRepository.findById(vehicleId).orElseThrow(() -> new VehicleNotFoundException(vehicleId));
         if (v.getStatut() != VehicleStatus.DISPONIBLE) {
             throw new IllegalStateException("Vehicle not available for rental");
         }
@@ -139,7 +145,7 @@ public class LocationServiceImpl implements LocationService {
 
     @Override
     public RentalDto closeRental(Long rentalId) {
-        Rental r = rentalRepository.findById(rentalId).orElseThrow();
+        Rental r = rentalRepository.findById(rentalId).orElseThrow(() -> new RentalNotFoundException(rentalId));
         Vehicle v = r.getVehicle();
         v.setStatut(VehicleStatus.DISPONIBLE);
         vehicleRepository.save(v);
